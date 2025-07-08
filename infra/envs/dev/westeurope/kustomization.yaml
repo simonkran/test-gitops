@@ -16,7 +16,7 @@ labels:
       topology.kubernetes.io/region: westeurope
 patches:
   - path: cert-manager-patch.yaml
-  - path: ingress-nginx-patch.yaml
+  # - path: ingress-nginx-patch.yaml
   - path: kube-prometheus-stack-patch.yaml
   # - path: kurrentdb-operator-patch.yaml
   - path: contour-patch.yaml
