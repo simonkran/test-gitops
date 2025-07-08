@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - cert-manager
-  - external-secrets
+  # - external-secrets
   # - kurrentdb-monitoring
 
 labels:
