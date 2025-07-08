@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ../../../base/cert-manager/
   # - ../../../base/ingress-nginx/
-  - ../../../base/kube-prometheus-stack/
+  # - ../../../base/kube-prometheus-stack/
   # - ../../../base/kurrentdb-operator/
   # - ../../../base/kurrentdb-monitoring/
   - ../../../base/contour/
@@ -17,6 +17,6 @@ labels:
 patches:
   - path: cert-manager-patch.yaml
   # - path: ingress-nginx-patch.yaml
-  - path: kube-prometheus-stack-patch.yaml
+  # - path: kube-prometheus-stack-patch.yaml
   # - path: kurrentdb-operator-patch.yaml
   - path: contour-patch.yaml
