@@ -12,7 +12,7 @@ spec:
       version: 21.0.7
       sourceRef:
         kind: HelmRepository
-        name: bitnami
+        name: contour
         namespace: flux-system
       interval: 12h
   targetNamespace: contour
