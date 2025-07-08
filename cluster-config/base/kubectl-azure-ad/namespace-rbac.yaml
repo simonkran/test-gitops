@@ -1,0 +1,134 @@
+# Namespace-specific RBAC for Azure AD groups
+# Provides granular access control per namespace
+
+---
+# Developer access to application namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-developers
+  namespace: podinfo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-developer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Developer access to default namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-developers
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-developer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operator access to infrastructure namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-operators
+  namespace: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operator access to ingress-nginx namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-operators
+  namespace: ingress-nginx
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operator access to cert-manager namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-operators
+  namespace: cert-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operator access to external-secrets-system namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-operators
+  namespace: external-secrets-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operator access to flux-system namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-operators
+  namespace: flux-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Restricted access to kube-system (read-only for developers)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: azure-ad-developers-readonly
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-viewer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Viewers get read access to all namespaces (handled by ClusterRoleBinding)
+# Additional namespace-specific viewer access can be added here if needed

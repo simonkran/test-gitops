@@ -1,0 +1,63 @@
+# Development environment patches for KurrentDB monitoring
+# More relaxed thresholds and warning-level alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kurrentdb-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: kurrentdb.critical
+    rules:
+    # Override instance down alert for dev (less critical)
+    - alert: KurrentDBInstanceDown
+      expr: up{job=~".*kurrentdb.*"} == 0
+      for: 1m  # Shorter for dev
+      labels:
+        severity: warning  # Less critical in dev
+        component: kurrentdb
+        environment: dev
+        region: westeurope
+      annotations:
+        summary: "KurrentDB instance {{ $labels.instance }} is down (DEV)"
+        description: "KurrentDB instance {{ $labels.instance }} in dev environment has been down for more than 1 minute."
+        runbook_url: "https://docs.kurrent.io/server/v25.0/diagnostics/"
+
+    # Override CPU alert for dev (higher threshold)
+    - alert: KurrentDBHighCPU
+      expr: rate(kurrentdb_process_cpu_total[5m]) * 100 > 90  # Higher threshold for dev
+      for: 10m
+      labels:
+        severity: warning
+        component: kurrentdb
+        environment: dev
+        region: westeurope
+      annotations:
+        summary: "KurrentDB high CPU usage on {{ $labels.instance }} (DEV)"
+        description: "KurrentDB instance {{ $labels.instance }} in dev environment CPU usage is {{ $value }}% for more than 10 minutes."
+
+    # Override memory alert for dev (higher threshold)
+    - alert: KurrentDBHighMemory
+      expr: kurrentdb_process_memory_working_set_bytes / kurrentdb_process_memory_limit_bytes * 100 > 90  # Higher threshold for dev
+      for: 10m
+      labels:
+        severity: warning
+        component: kurrentdb
+        environment: dev
+        region: westeurope
+      annotations:
+        summary: "KurrentDB high memory usage on {{ $labels.instance }} (DEV)"
+        description: "KurrentDB instance {{ $labels.instance }} in dev environment memory usage is {{ $value }}% for more than 10 minutes."
+
+    # Override disk space alert for dev (lower threshold)
+    - alert: KurrentDBDiskSpaceLow
+      expr: kurrentdb_drive_available_bytes / kurrentdb_drive_total_bytes * 100 < 5  # Lower threshold for dev
+      for: 5m
+      labels:
+        severity: warning  # Less critical in dev
+        component: kurrentdb
+        environment: dev
+        region: westeurope
+      annotations:
+        summary: "KurrentDB low disk space on {{ $labels.instance }} (DEV)"
+        description: "KurrentDB instance {{ $labels.instance }} in dev environment has less than {{ $value }}% disk space available."

@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: flux-system
+  labels:
+    region: westeurope
+    environment: uat
+spec:
+  chart:
+    spec:
+      version: "v1.13.x"
+  values:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: "75m"
+        memory: "96Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+    nodeSelector:
+      topology.kubernetes.io/region: westeurope

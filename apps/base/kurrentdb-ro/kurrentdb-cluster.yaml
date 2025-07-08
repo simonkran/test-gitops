@@ -1,0 +1,166 @@
+apiVersion: kurrent.io/v1alpha1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-ro-cluster
+  namespace: kurrentdb-ro
+  labels:
+    app.kubernetes.io/name: kurrentdb-ro
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: kurrentdb-ro-cluster
+    app.kubernetes.io/tier: replica
+    app.kubernetes.io/managed-by: flux
+spec:
+  replicas: 1
+  version: "latest"
+  
+  # Read-replica mode
+  mode: "read-replica"
+  
+  # Replication configuration
+  replication:
+    enabled: true
+    source:
+      # Connection to primary cluster (cross-region)
+      endpoint: "kurrentdb-cluster.kurrentdb.svc.cluster.local:2113"
+      # For cross-cluster scenarios, this would be an external endpoint
+    syncMode: "async"
+    batchSize: 500
+    syncInterval: "30s"
+    retryInterval: "10s"
+    maxRetries: 5
+  
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: default
+    accessModes:
+      - ReadWriteOnce
+  
+  # Resource configuration (optimized for reads)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # KurrentDB configuration
+  configuration:
+    clusterSize: 1
+    nodePort: 2113
+    httpPort: 2114
+    logLevel: info
+    
+    # Read-replica specific settings
+    readOnlyReplica: true
+    
+    # Caching for better read performance
+    caching:
+      enabled: true
+      size: "256Mi"
+      ttl: "300s"
+    
+    # Connection limits
+    connections:
+      maxRead: 50
+      maxWrite: 0  # No writes allowed on replica
+      
+    # Network configuration
+    networking:
+      advertisedHost: ""
+      externalIp: ""
+      
+    # Security configuration
+    security:
+      authentication: false
+      authorization: false
+      
+    # Projection configuration
+    projections:
+      enabled: true
+      threadsCount: 2  # Fewer threads for replica
+      
+    # Database configuration
+    database:
+      chunkSize: 134217728  # 128MB (smaller chunks for replica)
+      maxMemoryTableSize: 500000
+      hashCollisionReadLimit: 100
+      
+  # Service configuration
+  serviceSpec:
+    type: ClusterIP
+    ports:
+      - name: tcp
+        port: 2113
+        targetPort: 2113
+        protocol: TCP
+      - name: http
+        port: 2114
+        targetPort: 2114
+        protocol: TCP
+  
+  # Pod template
+  podTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kurrentdb-ro
+        app.kubernetes.io/component: database
+        app.kubernetes.io/tier: replica
+      annotations:
+        replica.kurrent.io/mode: "read-only"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      
+      containers:
+      - name: kurrentdb
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 2114
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 2114
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Environment variables for read replica
+        env:
+        - name: KURRENTDB_CLUSTER_SIZE
+          value: "1"
+        - name: KURRENTDB_LOG_LEVEL
+          value: "info"
+        - name: KURRENTDB_READ_ONLY_REPLICA
+          value: "true"
+        - name: KURRENTDB_REPLICATION_MODE
+          value: "async"
+        - name: KURRENTDB_ENABLE_EXTERNAL_TCP
+          value: "true"
+        - name: KURRENTDB_ENABLE_ATOM_PUB_OVER_HTTP
+          value: "true"
+        - name: KURRENTDB_CACHE_SIZE
+          value: "256MB"

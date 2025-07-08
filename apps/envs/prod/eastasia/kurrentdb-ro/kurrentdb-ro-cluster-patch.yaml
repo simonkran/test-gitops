@@ -1,0 +1,68 @@
+apiVersion: kurrent.io/v1alpha1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-ro-cluster
+  labels:
+    environment: "prod"
+    region: "eastasia"
+    topology.kubernetes.io/region: eastasia
+spec:
+  replicas: 2  # Production read replicas
+  resources:
+    requests:
+      cpu: "300m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  storage:
+    size: "100Gi"
+    storageClass: "managed-premium"
+  configuration:
+    logLevel: "warn"
+    clusterSize: 2
+    caching:
+      size: "512Mi"  # Larger cache for production
+  replication:
+    syncInterval: "10s"  # Faster sync for production
+    source:
+      endpoint: "kurrentdb-primary-westeurope-prod.example.com:2113"
+  podTemplate:
+    metadata:
+      labels:
+        environment: "prod"
+        region: "eastasia"
+        topology.kubernetes.io/region: eastasia
+      annotations:
+        region: "eastasia"
+        compliance.io/apac: "true"
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: eastasia
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - kurrentdb-ro
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: kurrentdb
+        env:
+        - name: KURRENTDB_REGION
+          value: "eastasia"
+        - name: KURRENTDB_DATA_RESIDENCY
+          value: "apac"
+        - name: KURRENTDB_TIMEZONE
+          value: "Asia/Tokyo"
+        - name: KURRENTDB_REPLICA_SOURCE_REGION
+          value: "westeurope"
+        - name: KURRENTDB_CROSS_REGION_REPLICATION
+          value: "true"
+        - name: KURRENTDB_ENABLE_METRICS
+          value: "true"
+        - name: KURRENTDB_PERFORMANCE_PROFILE
+          value: "production"

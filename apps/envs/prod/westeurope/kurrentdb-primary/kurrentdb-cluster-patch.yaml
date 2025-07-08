@@ -1,0 +1,58 @@
+apiVersion: kurrent.io/v1alpha1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-cluster
+  labels:
+    environment: "prod"
+    region: "westeurope"
+    topology.kubernetes.io/region: westeurope
+spec:
+  replicas: 3  # High availability
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  storage:
+    size: "100Gi"
+    storageClass: "managed-premium"
+  configuration:
+    logLevel: "warn"  # Less verbose for production
+    clusterSize: 3
+  podTemplate:
+    metadata:
+      labels:
+        environment: "prod"
+        region: "westeurope"
+        topology.kubernetes.io/region: westeurope
+      annotations:
+        region: "westeurope"
+        compliance.io/gdpr: "true"
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: westeurope
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - kurrentdb-primary
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: kurrentdb
+        env:
+        - name: KURRENTDB_REGION
+          value: "westeurope"
+        - name: KURRENTDB_DATA_RESIDENCY
+          value: "eu"
+        - name: KURRENTDB_TIMEZONE
+          value: "Europe/London"
+        - name: KURRENTDB_ENABLE_METRICS
+          value: "true"
+        - name: KURRENTDB_PERFORMANCE_PROFILE
+          value: "production"

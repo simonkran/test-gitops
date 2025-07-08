@@ -1,0 +1,52 @@
+# Development environment - More permissive RBAC for developers
+# Developers get admin access to application namespaces for easier development
+
+---
+# Enhanced developer permissions for development environment
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-developers-dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-developer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Developers can create namespaces in dev
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azure-ad-developer-dev-enhanced
+rules:
+# All developer permissions plus namespace creation
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+# Enhanced debugging access
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch"]
+# Access to resource metrics
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+# Bind enhanced dev permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-developers-dev-enhanced
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-developer-dev-enhanced
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID

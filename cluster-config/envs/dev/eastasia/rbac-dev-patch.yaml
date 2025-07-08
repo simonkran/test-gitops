@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: developer
+  labels:
+    region: "eastasia"
+    environment: "dev"
+rules:
+  - apiGroups: ["*"] # More permissive in dev
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["nodes"] # Can view nodes in dev
+    verbs: ["get", "list", "watch"]

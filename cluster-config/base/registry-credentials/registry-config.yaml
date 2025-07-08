@@ -1,0 +1,31 @@
+# Alternative: Manual secret creation (for development/testing)
+# NOT recommended for production - use External Secrets instead
+# 
+# To create manually:
+# kubectl create secret docker-registry acr-credentials \
+#   --docker-server=yourregistry.azurecr.io \
+#   --docker-username=yourUsername \
+#   --docker-password=yourPassword \
+#   --docker-email=your@email.com \
+#   --namespace=default
+
+# Registry configuration for different environments
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-config
+  namespace: default
+data:
+  # Azure Container Registry configuration
+  acr-registry: "yourregistry.azurecr.io"
+  acr-enabled: "true"
+  
+  # Docker Hub configuration  
+  dockerhub-enabled: "false"
+  
+  # Private registry configuration
+  private-registry: "private.registry.com"
+  private-registry-enabled: "false"
+  
+  # Image pull policy
+  image-pull-policy: "Always"

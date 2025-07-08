@@ -1,0 +1,138 @@
+# Kubernetes RBAC for Azure AD Integration
+# Maps Azure AD groups to Kubernetes roles
+
+---
+# Cluster Admin Role - Full cluster access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azure-ad-cluster-admin
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+# Developer Role - Application development access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azure-ad-developer
+rules:
+# Application namespaces access
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Read access to cluster resources
+- apiGroups: [""]
+  resources: ["nodes", "namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch"]
+# Logs and exec access
+- apiGroups: [""]
+  resources: ["pods/log", "pods/exec", "pods/portforward"]
+  verbs: ["get", "list", "create"]
+
+---
+# Operator Role - Infrastructure and monitoring access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azure-ad-operator
+rules:
+# Full access to infrastructure namespaces
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+  resourceNames: []
+# Cluster-wide infrastructure access
+- apiGroups: [""]
+  resources: ["nodes", "persistentvolumes"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses", "volumeattachments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingressclasses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Monitoring and observability
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["*"]
+  verbs: ["*"]
+# Custom Resource Definitions
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list", "watch"]
+
+---
+# Viewer Role - Read-only access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azure-ad-viewer
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBindings - Map Azure AD groups to roles
+# Replace GROUP_OBJECT_IDs with actual Azure AD group object IDs
+
+# Cluster Admins
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-cluster-admins
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "CLUSTER_ADMIN_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Operators
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-operators
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-operator
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "OPERATOR_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Viewers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-viewers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-viewer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "VIEWER_GROUP_ID"  # Replace with Azure AD group object ID

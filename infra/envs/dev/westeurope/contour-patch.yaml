@@ -1,0 +1,10 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: contour
+  namespace: flux-system
+  labels:
+    region: westeurope
+    environment: dev
+spec:
+  values:

@@ -1,0 +1,26 @@
+# Production environment - Restricted RBAC for developers
+# Developers have read-only access in production
+
+---
+# Developers get read-only access in production
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-developers-prod-readonly
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: azure-ad-viewer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: "DEVELOPER_GROUP_ID"  # Replace with Azure AD group object ID
+
+---
+# Remove default developer permissions in production
+# (This effectively overrides the base developer permissions)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-ad-developers
+subjects: []  # Empty subjects removes the binding

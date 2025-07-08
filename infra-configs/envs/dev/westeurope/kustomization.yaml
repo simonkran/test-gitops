@@ -1,0 +1,11 @@
+# apiVersion: kustomize.config.k8s.io/v1beta1
+# kind: Kustomization
+# resources:
+#   - ../../../base/cert-manager/
+
+# labels:
+#   - includeSelectors: true
+#     pairs:
+#       environment: dev
+#       region: westeurope
+#       topology.kubernetes.io/region: westeurope

@@ -1,0 +1,65 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+  labels:
+    region: eastasia
+    environment: dev
+spec:
+  chart:
+    spec:
+      version: "55.x"
+  values:
+    commonLabels:
+      environment: dev
+      region: eastasia
+      topology.kubernetes.io/region: eastasia
+    # Regional hostnames
+    grafana:
+      ingress:
+        hosts:
+          - "grafana-eastasia-dev.example.com"
+        tls:
+          - hosts:
+              - "grafana-eastasia-dev.example.com"
+      nodeSelector:
+        topology.kubernetes.io/region: eastasia
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "128Mi"
+        limits:
+          cpu: "200m"
+          memory: "256Mi"
+
+    prometheus:
+      ingress:
+        hosts:
+          - "prometheus-eastasia-dev.example.com"
+        tls:
+          - hosts:
+              - "prometheus-eastasia-dev.example.com"
+      prometheusSpec:
+        nodeSelector:
+          topology.kubernetes.io/region: eastasia
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        retention: "7d"
+        retentionSize: "5GB"
+
+    alertmanager:
+      ingress:
+        hosts:
+          - "alertmanager-eastasia-dev.example.com"
+        tls:
+          - hosts:
+              - "alertmanager-eastasia-dev.example.com"
+      alertmanagerSpec:
+        nodeSelector:
+          topology.kubernetes.io/region: eastasia

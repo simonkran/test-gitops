@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kurrentdb
+  labels:
+    app.kubernetes.io/name: kurrentdb-primary
+    app.kubernetes.io/component: database

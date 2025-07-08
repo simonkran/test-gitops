@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-config
+  namespace: default
+data:
+  # Production - strict security settings
+  acr-registry: "yourregistry.azurecr.io"
+  acr-enabled: "true"
+  
+  # Disable Docker Hub in production
+  dockerhub-enabled: "false"
+  
+  # Disable private registries in production
+  private-registry-enabled: "false"
+  
+  # Use specific image tags in production
+  image-pull-policy: "IfNotPresent"
+  
+  # Production security settings
+  allow-insecure-registries: "false"
+  skip-tls-verify: "false"
+  
+  # Additional security
+  enforce-signed-images: "true"
+  scan-images: "true"

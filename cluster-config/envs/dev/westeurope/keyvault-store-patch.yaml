@@ -1,0 +1,14 @@
+# Development environment Key Vault configuration
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: azure-keyvault-store
+  namespace: default
+spec:
+  provider:
+    azurekv:
+      # Development Key Vault
+      vaultUrl: "https://keyvault-dev.vault.azure.net/"
+      authType: WorkloadIdentity
+      serviceAccountRef:
+        name: workload-identity-sa

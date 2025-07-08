@@ -1,0 +1,37 @@
+# Azure Workload Identity configuration for ACR access
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: workload-identity-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: "YOUR_MANAGED_IDENTITY_CLIENT_ID"  # Replace with actual client ID
+  labels:
+    azure.workload.identity/use: "true"
+---
+# ClusterRole for accessing ACR
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: acr-reader
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["serviceaccounts"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+---
+# ClusterRoleBinding for ACR access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: acr-reader-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: acr-reader
+subjects:
+- kind: ServiceAccount
+  name: workload-identity-sa
+  namespace: default

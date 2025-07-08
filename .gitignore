@@ -1,0 +1,206 @@
+# Flux GitOps Repository .gitignore
+
+# =============================================================================
+# Kubernetes & Helm
+# =============================================================================
+
+# Helm
+charts/*.tgz
+charts/*/charts/
+charts/*/tmpcharts/
+charts/*/requirements.lock
+
+# Kustomize
+kustomization.yaml.bak
+*.orig
+
+# Kubectl
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# =============================================================================
+# Secrets & Sensitive Data
+# =============================================================================
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Secrets files (should use external-secrets or sealed-secrets instead)
+*secret*.yaml
+*secret*.yml
+*-secret.yaml
+*-secret.yml
+secrets/
+!**/example-secrets/
+
+# Private keys
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# Azure credentials
+.azure/
+azure-credentials.json
+
+# Service account keys
+*-sa-key.json
+serviceaccount*.json
+
+# =============================================================================
+# Azure Specific
+# =============================================================================
+
+# Azure CLI
+.azure/
+
+# =============================================================================
+# Development & IDE
+# =============================================================================
+
+# VSCode
+.vscode/
+!.vscode/settings.json.example
+!.vscode/launch.json.example
+!.vscode/extensions.json.example
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# =============================================================================
+# Operating System
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Logs & Temporary Files
+# =============================================================================
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# =============================================================================
+# GitOps & Flux Specific
+# =============================================================================
+
+# Flux state (these should not be committed)
+.flux/
+
+# Generated manifests (if any)
+generated/
+output/
+
+# Temporary kustomize builds
+kustomize-build/
+build/
+
+# Local development overrides
+local/
+*.local.yaml
+*.local.yml
+dev-overrides/
+
+# Patches that contain secrets or local config
+*-local-patch.yaml
+*-local-patch.yml
+*-secrets-patch.yaml
+*-secrets-patch.yml
+
+# =============================================================================
+# Documentation & Planning
+# =============================================================================
+
+# Local documentation that shouldn't be shared
+TODO.md
+NOTES.md
+.notes/
+planning/
+
+# =============================================================================
+# Testing & CI/CD
+# =============================================================================
+
+# Test outputs
+test-results/
+coverage/
+.coverage
+.nyc_output
+
+# CI/CD artifacts
+artifacts/
+reports/
+
+# =============================================================================
+# Custom Application Configs
+# =============================================================================
+
+# Add your application-specific ignore patterns here
+# Example:
+# my-app/config/local-*.yaml
+# my-app/secrets/
+
+# =============================================================================
+# End of .gitignore
+# =============================================================================

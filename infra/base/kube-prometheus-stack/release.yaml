@@ -1,0 +1,252 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  releaseName: kube-prometheus-stack
+  interval: 30m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: 74.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+      interval: 12h
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  targetNamespace: monitoring
+  driftDetection:
+    mode: enabled
+    ignore:
+      # Ignore "validated" annotation which is not inserted during install
+      - paths: ["/metadata/annotations/prometheus-operator-validated"]
+        target:
+          kind: PrometheusRule
+  values:
+    # Global configuration
+
+    # Prometheus configuration
+    prometheus:
+      prometheusSpec:
+        # Resource configuration
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+
+        # Storage configuration
+        # storageSpec:
+        #   volumeClaimTemplate:
+        #     spec:
+        #       storageClassName: default
+        #       accessModes: ["ReadWriteOnce"]
+        #       resources:
+        #         requests:
+        #           storage: 10Gi
+
+        # Retention policy
+        retention: 7d
+        retentionSize: 8GB
+
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          fsGroup: 65534
+          seccompProfile:
+            type: RuntimeDefault
+
+        # Service monitor selector
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+
+        # Additional scrape configs for infrastructure components
+        additionalScrapeConfigs:
+          - job_name: "flux-system"
+            kubernetes_sd_configs:
+              - role: pod
+                namespaces:
+                  names:
+                    - flux-system
+            relabel_configs:
+              - source_labels:
+                  [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                action: keep
+                regex: true
+              - source_labels:
+                  [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels:
+                  [
+                    __address__,
+                    __meta_kubernetes_pod_annotation_prometheus_io_port,
+                  ]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+                target_label: __address__
+
+    # Grafana configuration
+    grafana:
+      enabled: true
+
+      # Azure AD Authentication - disable default admin password
+      # adminPassword: null
+
+      # Environment variables for Azure AD
+      # env:
+      #   GF_AUTH_AZUREAD_ENABLED: "true"
+      #   GF_AUTH_AZUREAD_ALLOW_SIGN_UP: "true"
+      #   GF_AUTH_AZUREAD_AUTO_LOGIN: "false"
+      #   GF_AUTH_AZUREAD_SCOPES: "openid email profile"
+      #   GF_AUTH_AZUREAD_ALLOWED_DOMAINS: "your-company.com" # Replace with your domain
+
+      # Environment variables from Azure AD secret
+      # envFromSecrets:
+      #   - name: grafana-azure-ad
+      #     prefix: GF_AUTH_AZUREAD_
+      #     keys:
+      #       - name: TENANT_ID
+      #         key: tenant-id
+      #       - name: CLIENT_ID
+      #         key: client-id
+      #       - name: CLIENT_SECRET
+      #         key: client-secret
+      #       - name: ADMIN_GROUP_ID
+      #         key: admin-group-id
+      #       - name: EDITOR_GROUP_ID
+      #         key: editor-group-id
+      #       - name: VIEWER_GROUP_ID
+      #         key: viewer-group-id
+
+      # Ingress configuration
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: "letsencrypt-staging"
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        hosts:
+          - grafana.example.com # Change to your domain
+        # tls:
+        #   - secretName: grafana-tls
+        #     hosts:
+        #       - grafana.example.com
+
+      # Resources
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        fsGroup: 472
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Persistence
+      # persistence:
+      #   enabled: true
+      #   storageClassName: default
+      #   size: 5Gi
+
+      # Grafana configuration
+      grafana.ini:
+        # Azure AD OAuth configuration
+        auth.azuread:
+          enabled: true
+          allow_sign_up: true
+          auto_login: false
+          client_id: $__env{GF_AUTH_AZUREAD_CLIENT_ID}
+          client_secret: $__env{GF_AUTH_AZUREAD_CLIENT_SECRET}
+          scopes: "openid email profile"
+          auth_url: https://login.microsoftonline.com/$__env{GF_AUTH_AZUREAD_TENANT_ID}/oauth2/v2.0/authorize
+          token_url: https://login.microsoftonline.com/$__env{GF_AUTH_AZUREAD_TENANT_ID}/oauth2/v2.0/token
+          api_url: https://graph.microsoft.com/v1.0/me
+          allowed_domains: "your-company.com" # Replace with your domain
+
+        # Server configuration
+        server:
+          root_url: https://grafana.example.com # Replace with your domain
+
+        # Security settings
+        security:
+          # disable_initial_admin_creation: true
+          cookie_secure: true
+          cookie_samesite: lax
+          strict_transport_security: true
+
+        # User settings
+        users:
+          allow_sign_up: false
+          auto_assign_org: true
+          auto_assign_org_role: Viewer
+          default_theme: dark
+
+    # Alertmanager configuration
+    alertmanager:
+      alertmanagerSpec:
+        # Resources
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+
+        # Storage
+        # storage:
+        #   volumeClaimTemplate:
+        #     spec:
+        #       storageClassName: default
+        #       accessModes: ["ReadWriteOnce"]
+        #       resources:
+        #         requests:
+        #           storage: 2Gi
+
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          fsGroup: 65534
+          seccompProfile:
+            type: RuntimeDefault
+
+    # Node Exporter
+    nodeExporter:
+      enabled: true
+
+    # kube-state-metrics
+    kubeStateMetrics:
+      enabled: true
+
+    # Disable components not needed in basic setup
+    kubeEtcd:
+      enabled: false # Often not accessible in managed clusters
+
+    kubeControllerManager:
+      enabled: false # Often not accessible in managed clusters
+
+    kubeScheduler:
+      enabled: false # Often not accessible in managed clusters
+
+    kubeProxy:
+      enabled: true # Usually accessible

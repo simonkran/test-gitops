@@ -1,0 +1,67 @@
+# Additional monitoring configuration for Flux and infrastructure
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: monitoring
+data:
+  # Flux monitoring configuration
+  flux-monitoring: |
+    # ServiceMonitor for Flux controllers
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: flux-system
+      namespace: monitoring
+    spec:
+      namespaceSelector:
+        matchNames:
+        - flux-system
+      selector:
+        matchLabels:
+          app.kubernetes.io/part-of: flux
+      endpoints:
+      - port: http-prom
+        interval: 30s
+        path: /metrics
+
+  # Additional Prometheus rules for infrastructure
+  prometheus-rules: |
+    groups:
+    - name: infrastructure.rules
+      rules:
+      - alert: IngressNginxDown
+        expr: up{job="ingress-nginx-controller-metrics"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ingress Nginx controller is down"
+          description: "Ingress Nginx controller has been down for more than 5 minutes"
+      
+      - alert: CertManagerDown
+        expr: up{job="cert-manager"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Cert Manager is down"
+          description: "Cert Manager has been down for more than 5 minutes"
+      
+      - alert: ExternalSecretsDown
+        expr: up{job="external-secrets"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "External Secrets Operator is down"
+          description: "External Secrets Operator has been down for more than 5 minutes"
+      
+      - alert: FluxReconciliationFailure
+        expr: gotk_reconcile_condition{type="Ready",status="False"} == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Flux reconciliation failing"
+          description: "{{ $labels.kind }}/{{ $labels.name }} reconciliation has been failing for more than 15 minutes"

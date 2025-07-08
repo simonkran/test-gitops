@@ -1,0 +1,14 @@
+# Production environment Key Vault configuration for East Asia
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: azure-keyvault-store
+  namespace: default
+spec:
+  provider:
+    azurekv:
+      # Production Key Vault in East Asia region
+      vaultUrl: "https://keyvault-eastasia-prod.vault.azure.net/"
+      authType: WorkloadIdentity
+      serviceAccountRef:
+        name: workload-identity-sa

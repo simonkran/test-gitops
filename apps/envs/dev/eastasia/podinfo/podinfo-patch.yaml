@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: podinfo
+  labels:
+    environment: dev
+    region: eastasia
+spec:
+  values:
+    commonLabels:
+      environment: dev
+      region: eastasia
+      topology.kubernetes.io/region: eastasia
+    replicaCount: 1
+    image:
+      tag: "6.0.0"
+    resources:
+      requests:
+        cpu: "10m"
+        memory: "16Mi"
+      limits:
+        cpu: "100m"
+        memory: "64Mi"
+    nodeSelector:
+      topology.kubernetes.io/region: eastasia
+    podAnnotations:
+      region: "eastasia"
+      environment: "dev"

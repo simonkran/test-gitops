@@ -1,0 +1,27 @@
+apiVersion: kubernetes.kurrent.io/v1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-cluster
+  namespace: kurrentdb
+  labels:
+    environment: "dev"
+    region: "westeurope"
+    topology.kubernetes.io/region: westeurope
+spec:
+  replicas: 1
+  image: docker.kurrent.io/kurrent-latest/kurrentdb:25.0.0
+  # resources:
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 1Gi
+  storage:
+    volumeMode: "Filesystem"
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 512Mi
+  network:
+    domain: kurrentdb-cluster-westeurope-dev.127-0-0-1.nip.io
+    loadBalancer:
+      enabled: true

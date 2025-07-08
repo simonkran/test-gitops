@@ -1,0 +1,82 @@
+# KurrentDB ServiceMonitors for Prometheus scraping
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kurrentdb-primary
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: kurrentdb-primary
+    app.kubernetes.io/component: servicemonitor
+spec:
+  namespaceSelector:
+    matchNames:
+    - kurrentdb
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kurrentdb-primary
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics
+    scheme: http
+    scrapeTimeout: 10s
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: service
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kurrentdb-ro
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: kurrentdb-ro
+    app.kubernetes.io/component: servicemonitor
+spec:
+  namespaceSelector:
+    matchNames:
+    - kurrentdb
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kurrentdb-ro
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics
+    scheme: http
+    scrapeTimeout: 10s
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: service
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kurrentdb-operator
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: kurrentdb-operator
+    app.kubernetes.io/component: servicemonitor
+spec:
+  namespaceSelector:
+    matchNames:
+    - kurrentdb-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kurrentdb-operator
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scheme: http
+    scrapeTimeout: 10s

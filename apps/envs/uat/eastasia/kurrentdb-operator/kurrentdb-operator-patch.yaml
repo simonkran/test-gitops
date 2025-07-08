@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kurrentdb-operator
+  labels:
+    environment: uat
+    region: eastasia
+spec:
+  values:
+    commonLabels:
+      environment: uat
+      region: eastasia
+      topology.kubernetes.io/region: eastasia
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "200m"
+        memory: "128Mi"
+    leaderElection:
+      retryPeriod: "1s"
+    metrics:
+      serviceMonitor:
+        interval: "15s"
+    nodeSelector:
+      topology.kubernetes.io/region: eastasia

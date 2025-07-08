@@ -1,0 +1,89 @@
+# UAT environment patches for KurrentDB monitoring
+# Relaxed thresholds for user acceptance testing
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kurrentdb-alerts
+  namespace: monitoring
+spec:
+  groups:
+    - name: kurrentdb.critical
+      rules:
+        # Override instance down alert for UAT
+        - alert: KurrentDBInstanceDown
+          expr: up{job=~".*kurrentdb.*"} == 0
+          for: 2m # Longer wait time for UAT
+          labels:
+            severity: warning # Less critical in UAT
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB instance {{ $labels.instance }} is down (UAT)"
+            description: "KurrentDB instance {{ $labels.instance }} in UAT environment has been down for more than 2 minutes."
+            runbook_url: "https://docs.kurrent.io/server/v25.0/diagnostics/"
+
+        # Override CPU alert for UAT (relaxed threshold)
+        - alert: KurrentDBHighCPU
+          expr: rate(kurrentdb_process_cpu_total[5m]) * 100 > 85 # Higher threshold for UAT
+          for: 10m # Longer duration for UAT
+          labels:
+            severity: warning
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB high CPU usage on {{ $labels.instance }} (UAT)"
+            description: "KurrentDB instance {{ $labels.instance }} in UAT environment CPU usage is {{ $value }}% for more than 10 minutes."
+
+        # Override memory alert for UAT (relaxed threshold)
+        - alert: KurrentDBHighMemory
+          expr: kurrentdb_process_memory_working_set_bytes / kurrentdb_process_memory_limit_bytes * 100 > 88 # Higher threshold for UAT
+          for: 10m # Longer duration for UAT
+          labels:
+            severity: warning
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB high memory usage on {{ $labels.instance }} (UAT)"
+            description: "KurrentDB instance {{ $labels.instance }} in UAT environment memory usage is {{ $value }}% for more than 10 minutes."
+
+        # Override disk space alert for UAT (lower threshold)
+        - alert: KurrentDBDiskSpaceLow
+          expr: kurrentdb_drive_available_bytes / kurrentdb_drive_total_bytes * 100 < 8 # Lower threshold for UAT
+          for: 5m
+          labels:
+            severity: warning
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB low disk space on {{ $labels.instance }} (UAT)"
+            description: "KurrentDB instance {{ $labels.instance }} in UAT environment has less than {{ $value }}% disk space available."
+
+        # UAT-specific performance monitoring (relaxed)
+        - alert: KurrentDBHighWriteLatencyUAT
+          expr: rate(kurrentdb_writer_flush_duration_seconds_sum[5m]) / rate(kurrentdb_writer_flush_duration_seconds_count[5m]) > 0.6 # More relaxed for UAT
+          for: 10m
+          labels:
+            severity: warning
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB high write latency on {{ $labels.instance }} (UAT)"
+            description: "KurrentDB instance {{ $labels.instance }} in UAT has high write latency of {{ $value }}s for more than 10 minutes."
+
+        # Projection lag monitoring for UAT (more lenient)
+        - alert: KurrentDBProjectionLagUAT
+          expr: kurrentdb_projections_running_progress_lag > 20000 # Higher threshold for UAT
+          for: 15m # Longer duration for UAT
+          labels:
+            severity: warning
+            component: kurrentdb
+            environment: uat
+            region: eastasia
+          annotations:
+            summary: "KurrentDB projection lag on {{ $labels.instance }} (UAT)"
+            description: "KurrentDB projection {{ $labels.projection }} is lagging by {{ $value }} events on {{ $labels.instance }} in UAT environment."

@@ -1,0 +1,56 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: podinfo
+  namespace: flux-system
+spec:
+  releaseName: podinfo
+  interval: 30m
+  chart:
+    spec:
+      chart: podinfo
+      version: 6.9.0
+      sourceRef:
+        kind: HelmRepository
+        name: podinfo
+        namespace: flux-system
+      interval: 12h
+  targetNamespace: podinfo
+  values:
+    # Monitoring configuration
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: monitoring
+
+    replicaCount: 1
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-staging"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: podinfo.example.com # Change this to your domain
+          paths:
+            - path: /
+              pathType: Prefix
+      # tls:
+      #   - secretName: podinfo-tls
+      #     hosts:
+      #       - podinfo.example.com # Change this to your domain
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    ui:
+      color: "#34577c"
+      message: "Welcome to West Europe Dev!"
+    redis:
+      enabled: false
+    cache:
+      enabled: false

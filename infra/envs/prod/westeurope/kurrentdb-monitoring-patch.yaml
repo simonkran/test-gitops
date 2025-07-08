@@ -1,0 +1,88 @@
+# Production environment patches for KurrentDB monitoring
+# Strict thresholds and critical alerts for production workloads
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kurrentdb-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: kurrentdb.critical
+    rules:
+    # Override instance down alert for prod (strict)
+    - alert: KurrentDBInstanceDown
+      expr: up{job=~".*kurrentdb.*"} == 0
+      for: 30s  # Very quick response in prod
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB instance {{ $labels.instance }} is down (PROD)"
+        description: "KurrentDB instance {{ $labels.instance }} in production environment has been down for more than 30 seconds. IMMEDIATE ACTION REQUIRED."
+        runbook_url: "https://docs.kurrent.io/server/v25.0/diagnostics/"
+
+    # Override CPU alert for prod (lower threshold)
+    - alert: KurrentDBHighCPU
+      expr: rate(kurrentdb_process_cpu_total[5m]) * 100 > 70  # Lower threshold for prod
+      for: 3m  # Shorter duration for prod
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB high CPU usage on {{ $labels.instance }} (PROD)"
+        description: "KurrentDB instance {{ $labels.instance }} in production environment CPU usage is {{ $value }}% for more than 3 minutes."
+
+    # Override memory alert for prod (lower threshold)
+    - alert: KurrentDBHighMemory
+      expr: kurrentdb_process_memory_working_set_bytes / kurrentdb_process_memory_limit_bytes * 100 > 80  # Lower threshold for prod
+      for: 3m  # Shorter duration for prod
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB high memory usage on {{ $labels.instance }} (PROD)"
+        description: "KurrentDB instance {{ $labels.instance }} in production environment memory usage is {{ $value }}% for more than 3 minutes."
+
+    # Override disk space alert for prod (higher threshold)
+    - alert: KurrentDBDiskSpaceLow
+      expr: kurrentdb_drive_available_bytes / kurrentdb_drive_total_bytes * 100 < 15  # Higher threshold for prod
+      for: 2m
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB low disk space on {{ $labels.instance }} (PROD)"
+        description: "KurrentDB instance {{ $labels.instance }} in production environment has less than {{ $value }}% disk space available. IMMEDIATE ACTION REQUIRED."
+
+    # Additional production-specific alerts
+    - alert: KurrentDBClusterDegradedProd
+      expr: sum(kurrentdb_cluster_member_alive) / count(kurrentdb_cluster_member_alive) < 0.67
+      for: 1m
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB cluster degraded in production"
+        description: "Less than 67% of KurrentDB cluster members are available in production environment."
+
+    - alert: KurrentDBHighWriteLatencyProd
+      expr: rate(kurrentdb_writer_flush_duration_seconds_sum[5m]) / rate(kurrentdb_writer_flush_duration_seconds_count[5m]) > 0.3  # Stricter for prod
+      for: 2m  # Shorter duration for prod
+      labels:
+        severity: critical
+        component: kurrentdb
+        environment: prod
+        region: westeurope
+      annotations:
+        summary: "KurrentDB high write latency on {{ $labels.instance }} (PROD)"
+        description: "KurrentDB instance {{ $labels.instance }} in production has high write latency of {{ $value }}s for more than 2 minutes."

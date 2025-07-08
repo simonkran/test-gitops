@@ -1,0 +1,46 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kurrentdb-operator
+  namespace: flux-system
+spec:
+  releaseName: kurrentdb-operator
+  interval: 30m
+  chart:
+    spec:
+      chart: kurrentdb-operator
+      version: 1.1.0
+      sourceRef:
+        kind: HelmRepository
+        name: kurrentdb-operator
+        namespace: flux-system
+      interval: 12h
+  targetNamespace: kurrentdb-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    operator:
+      # resources:
+      #   requests:
+      #     memory: 64Mi
+      #     cpu: 1000m
+      #   limits:
+      #     memory: 128Mi
+      # imageRepository:
+      #   name: cloudsmith
+      #   url: docker.kurrent.io/kurrent-latest
+      #   credentialsSecretName: kurrent-image-repo-credentials
+      #   username:
+      #   password:
+      # image:
+      #   name: "kurrentdb-operator:1.1.0"
+      #   pullPolicy: IfNotPresent
+      logging:
+        level: info
+      namespaces: []
+      license:
+        secretName: operator-license

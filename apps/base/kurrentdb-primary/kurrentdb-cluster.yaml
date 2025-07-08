@@ -1,0 +1,28 @@
+apiVersion: kubernetes.kurrent.io/v1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-cluster
+  namespace: kurrentdb
+  labels:
+    app.kubernetes.io/name: kurrentdb-primary
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: kurrentdb-cluster
+    app.kubernetes.io/managed-by: flux
+spec:
+  replicas: 1
+  # image: docker.kurrent.io/kurrent-latest/kurrentdb:25.0.0
+  # resources:
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 1Gi
+  storage:
+    volumeMode: "Filesystem"
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 512Mi
+  network:
+    domain: kurrentdb-cluster.127-0-0-1.nip.io
+    loadBalancer:
+      enabled: true

@@ -1,0 +1,65 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+  labels:
+    region: westeurope
+    environment: prod
+spec:
+  chart:
+    spec:
+      version: "61.9.x"
+  values:
+    commonLabels:
+      environment: prod
+      region: westeurope
+      topology.kubernetes.io/region: westeurope
+    # Regional hostnames
+    grafana:
+      ingress:
+        hosts:
+          - "grafana-westeurope-prod.example.com"
+        tls:
+          - hosts:
+              - "grafana-westeurope-prod.example.com"
+      nodeSelector:
+        topology.kubernetes.io/region: westeurope
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+
+    prometheus:
+      ingress:
+        hosts:
+          - "prometheus-westeurope-prod.example.com"
+        tls:
+          - hosts:
+              - "prometheus-westeurope-prod.example.com"
+      prometheusSpec:
+        nodeSelector:
+          topology.kubernetes.io/region: westeurope
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "2Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        retention: "30d"
+        retentionSize: "50GB"
+
+    alertmanager:
+      ingress:
+        hosts:
+          - "alertmanager-westeurope-prod.example.com"
+        tls:
+          - hosts:
+              - "alertmanager-westeurope-prod.example.com"
+      alertmanagerSpec:
+        nodeSelector:
+          topology.kubernetes.io/region: westeurope

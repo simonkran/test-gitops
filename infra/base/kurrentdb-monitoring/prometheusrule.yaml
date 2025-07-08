@@ -1,0 +1,151 @@
+# KurrentDB PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kurrentdb-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: kurrentdb
+    app.kubernetes.io/component: alerting
+spec:
+  groups:
+  - name: kurrentdb.critical
+    interval: 30s
+    rules:
+    # Instance Health Alerts
+    - alert: KurrentDBInstanceDown
+      expr: up{job=~".*kurrentdb.*"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB instance {{ $labels.instance }} is down"
+        description: "KurrentDB instance {{ $labels.instance }} has been down for more than 2 minutes."
+        runbook_url: "https://docs.kurrent.io/server/v25.0/diagnostics/"
+
+    - alert: KurrentDBHighCPU
+      expr: rate(kurrentdb_process_cpu_total[5m]) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB high CPU usage on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} CPU usage is {{ $value }}% for more than 5 minutes."
+
+    - alert: KurrentDBHighMemory
+      expr: kurrentdb_process_memory_working_set_bytes / kurrentdb_process_memory_limit_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB high memory usage on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} memory usage is {{ $value }}% for more than 5 minutes."
+
+    # Database Health Alerts
+    - alert: KurrentDBDiskSpaceLow
+      expr: kurrentdb_drive_available_bytes / kurrentdb_drive_total_bytes * 100 < 10
+      for: 5m
+      labels:
+        severity: critical
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB low disk space on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} has less than {{ $value }}% disk space available."
+
+    - alert: KurrentDBHighDiskIOLatency
+      expr: rate(kurrentdb_io_record_read_duration_seconds_sum[5m]) / rate(kurrentdb_io_record_read_duration_seconds_count[5m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB high disk I/O latency on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} has high disk I/O latency of {{ $value }}s for more than 10 minutes."
+
+    # Cluster Health Alerts
+    - alert: KurrentDBClusterNodeUnavailable
+      expr: kurrentdb_cluster_member_alive == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB cluster node {{ $labels.member }} unavailable"
+        description: "KurrentDB cluster node {{ $labels.member }} has been unavailable for more than 2 minutes."
+
+    - alert: KurrentDBNoLeaderElected
+      expr: sum(kurrentdb_cluster_member_is_leader) == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB cluster has no leader"
+        description: "KurrentDB cluster has no leader elected for more than 1 minute."
+
+    # Performance Alerts
+    - alert: KurrentDBHighWriteLatency
+      expr: rate(kurrentdb_writer_flush_duration_seconds_sum[5m]) / rate(kurrentdb_writer_flush_duration_seconds_count[5m]) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB high write latency on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} has high write latency of {{ $value }}s for more than 5 minutes."
+
+    - alert: KurrentDBHighProjectionLatency
+      expr: kurrentdb_projections_running_progress_lag > 10000
+      for: 10m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB projection lag on {{ $labels.instance }}"
+        description: "KurrentDB projection {{ $labels.projection }} is lagging by {{ $value }} events on {{ $labels.instance }}."
+
+    # Connection Alerts
+    - alert: KurrentDBHighConnectionCount
+      expr: kurrentdb_tcp_connections_current > 100
+      for: 5m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB high connection count on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} has {{ $value }} concurrent connections for more than 5 minutes."
+
+    - alert: KurrentDBConnectionErrors
+      expr: rate(kurrentdb_tcp_connection_errors_total[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+        component: kurrentdb
+      annotations:
+        summary: "KurrentDB connection errors on {{ $labels.instance }}"
+        description: "KurrentDB instance {{ $labels.instance }} is experiencing {{ $value }} connection errors per second."
+
+  - name: kurrentdb.performance
+    interval: 1m
+    rules:
+    # Performance Recording Rules
+    - record: kurrentdb:write_rate_5m
+      expr: rate(kurrentdb_io_events_total{activity="written"}[5m])
+
+    - record: kurrentdb:read_rate_5m
+      expr: rate(kurrentdb_io_events_total{activity="read"}[5m])
+
+    - record: kurrentdb:cpu_usage_5m
+      expr: rate(kurrentdb_process_cpu_total[5m]) * 100
+
+    - record: kurrentdb:memory_usage_percent
+      expr: kurrentdb_process_memory_working_set_bytes / kurrentdb_process_memory_limit_bytes * 100
+
+    - record: kurrentdb:disk_usage_percent
+      expr: (1 - kurrentdb_drive_available_bytes / kurrentdb_drive_total_bytes) * 100
+
+    - record: kurrentdb:cache_hit_rate_5m
+      expr: rate(kurrentdb_cache_hits_misses_total{kind="hits"}[5m]) / (rate(kurrentdb_cache_hits_misses_total{kind="hits"}[5m]) + rate(kurrentdb_cache_hits_misses_total{kind="misses"}[5m])) * 100

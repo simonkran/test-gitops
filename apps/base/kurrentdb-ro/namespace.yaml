@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kurrentdb-ro
+  labels:
+    app.kubernetes.io/name: kurrentdb-ro
+    app.kubernetes.io/component: database
+    app.kubernetes.io/tier: replica

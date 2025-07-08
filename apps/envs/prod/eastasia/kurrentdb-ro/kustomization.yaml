@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../base/kurrentdb-ro/
+
+# Strategic merge patch for production configuration
+patchesStrategicMerge:
+- kurrentdb-ro-cluster-patch.yaml

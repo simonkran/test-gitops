@@ -1,0 +1,53 @@
+apiVersion: kurrent.io/v1alpha1
+kind: KurrentDB
+metadata:
+  name: kurrentdb-ro-cluster
+  labels:
+    environment: "dev"
+    region: "eastasia"
+    topology.kubernetes.io/region: eastasia
+spec:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  storage:
+    size: "10Gi"
+    storageClass: "managed-premium"
+  configuration:
+    logLevel: "debug"
+    clusterSize: 1
+    caching:
+      size: "128Mi"
+  replication:
+    syncInterval: "15s"
+    source:
+      endpoint: "kurrentdb-primary-westeurope.example.com:2113"
+  podTemplate:
+    metadata:
+      labels:
+        environment: "dev"
+        region: "eastasia"
+        topology.kubernetes.io/region: eastasia
+      annotations:
+        region: "eastasia"
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: eastasia
+      containers:
+      - name: kurrentdb
+        env:
+        - name: KURRENTDB_REGION
+          value: "eastasia"
+        - name: KURRENTDB_DATA_RESIDENCY
+          value: "apac"
+        - name: KURRENTDB_TIMEZONE
+          value: "Asia/Tokyo"
+        - name: KURRENTDB_REPLICA_SOURCE_REGION
+          value: "westeurope"
+        - name: KURRENTDB_CROSS_REGION_REPLICATION
+          value: "true"

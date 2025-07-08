@@ -1,0 +1,14 @@
+# Production environment Key Vault configuration
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: azure-keyvault-store
+  namespace: default
+spec:
+  provider:
+    azurekv:
+      # Production Key Vault
+      vaultUrl: "https://keyvault-prod.vault.azure.net/"
+      authType: WorkloadIdentity
+      serviceAccountRef:
+        name: workload-identity-sa

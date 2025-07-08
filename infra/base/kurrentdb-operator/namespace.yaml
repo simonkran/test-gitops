@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kurrentdb-system
+  labels:
+    app.kubernetes.io/name: kurrentdb-operator
+    app.kubernetes.io/component: operator
+    control-plane: kurrentdb-operator

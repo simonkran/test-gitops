@@ -1,0 +1,64 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+  labels:
+    region: westeurope
+    environment: dev
+spec:
+  chart:
+    spec:
+      version: 74.2.1
+  values:
+    commonLabels:
+      environment: dev
+      region: westeurope
+      topology.kubernetes.io/region: westeurope
+    # Regional hostnames for Western Europe Dev
+    grafana:
+      ingress:
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-staging
+        hosts:
+          - "grafana-westeurope-dev.127-0-0-1.nip.io"
+        # tls:
+        #   - hosts:
+        #       - "grafana-westeurope-dev.127-0-0-1.nip.io"
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "128Mi"
+        limits:
+          cpu: "200m"
+          memory: "256Mi"
+
+    prometheus:
+      ingress:
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-staging
+        hosts:
+          - "prometheus-westeurope-dev.127-0-0-1.nip.io"
+        # tls:
+        #   - hosts:
+        #       - "prometheus-westeurope-dev.127-0-0-1.nip.io"
+      prometheusSpec:
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        retention: "7d"
+        retentionSize: "5GB"
+
+    alertmanager:
+      ingress:
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-staging
+        hosts:
+          - "alertmanager-westeurope-dev.127-0-0-1.nip.io"
+        # tls:
+        #   - hosts:
+        #       - "alertmanager-westeurope-dev.127-0-0-1.nip.io"
