@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: cluster-config
+    - name: cluster-configs
   interval: 10m0s
   sourceRef:
     kind: GitRepository

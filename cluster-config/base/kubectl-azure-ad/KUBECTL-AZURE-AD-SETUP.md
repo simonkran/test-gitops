@@ -98,17 +98,17 @@ OPERATOR_GROUP_ID="your-operator-group-id"
 VIEWER_GROUP_ID="your-viewer-group-id"
 
 # Update azure-ad-rbac.yaml
-sed -i "s/CLUSTER_ADMIN_GROUP_ID/$CLUSTER_ADMIN_GROUP_ID/g" cluster-config/kubectl-azure-ad/azure-ad-rbac.yaml
-sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-config/kubectl-azure-ad/azure-ad-rbac.yaml
-sed -i "s/OPERATOR_GROUP_ID/$OPERATOR_GROUP_ID/g" cluster-config/kubectl-azure-ad/azure-ad-rbac.yaml
-sed -i "s/VIEWER_GROUP_ID/$VIEWER_GROUP_ID/g" cluster-config/kubectl-azure-ad/azure-ad-rbac.yaml
+sed -i "s/CLUSTER_ADMIN_GROUP_ID/$CLUSTER_ADMIN_GROUP_ID/g" cluster-configs/kubectl-azure-ad/azure-ad-rbac.yaml
+sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-configs/kubectl-azure-ad/azure-ad-rbac.yaml
+sed -i "s/OPERATOR_GROUP_ID/$OPERATOR_GROUP_ID/g" cluster-configs/kubectl-azure-ad/azure-ad-rbac.yaml
+sed -i "s/VIEWER_GROUP_ID/$VIEWER_GROUP_ID/g" cluster-configs/kubectl-azure-ad/azure-ad-rbac.yaml
 
 # Update namespace-rbac.yaml
-sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-config/kubectl-azure-ad/namespace-rbac.yaml
-sed -i "s/OPERATOR_GROUP_ID/$OPERATOR_GROUP_ID/g" cluster-config/kubectl-azure-ad/namespace-rbac.yaml
+sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-configs/kubectl-azure-ad/namespace-rbac.yaml
+sed -i "s/OPERATOR_GROUP_ID/$OPERATOR_GROUP_ID/g" cluster-configs/kubectl-azure-ad/namespace-rbac.yaml
 
 # Update environment patches
-sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-config/overlays/*/kubectl-rbac-*-patch.yaml
+sed -i "s/DEVELOPER_GROUP_ID/$DEVELOPER_GROUP_ID/g" cluster-configs/overlays/*/kubectl-rbac-*-patch.yaml
 ```
 
 ## Step 5: Deploy RBAC Configuration

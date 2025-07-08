@@ -115,7 +115,7 @@ az keyvault secret set --vault-name $KEYVAULT_NAME --name "grafana-viewer-group-
 
 ### Update Key Vault name:
 ```bash
-# In cluster-config/registry-credentials/external-secrets.yaml
+# In cluster-configs/registry-credentials/external-secrets.yaml
 # Replace: YOUR-KEYVAULT-NAME with your actual Key Vault name
 ```
 
