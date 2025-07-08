@@ -24,7 +24,8 @@ spec:
     ingress:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        ingress.kubernetes.io/force-ssl-redirect: "true"
+      className: contour
       hosts:
         - host: podinfo-westeurope-dev.50-85-102-74.nip.io # Change this to your domain
           paths:
